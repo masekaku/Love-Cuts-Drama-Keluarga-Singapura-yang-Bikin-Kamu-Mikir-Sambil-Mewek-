@@ -11,3 +11,13 @@ module.exports = withPWA({
     domains: ['i.ytimg.com'],
   },
 });
+
+pwa: {
+  dest: 'public',
+  runtimeCaching: [
+    {
+      urlPattern: /\.(?:png|jpg|jpeg|svg)$/,
+      handler: 'CacheFirst',
+    }
+  ]
+}
