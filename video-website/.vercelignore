@@ -1,7 +1,0 @@
-.next
-node_modules
-.git
-.gitignore
-.vercel
-*.md
-*.log
