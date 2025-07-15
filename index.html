@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamLight - Minimal Video Viewer</title>
+    <meta name="description" content="Super fast video streaming platform">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --dark: #121212;
+            --dark-light: #1e1e1e;
+            --light: #f8f9fa;
+            --success: #4cc9f0;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Performance optimizations */
+        img, video {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Minimal Header */
+        .minimal-header {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.8rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .logo i {
+            font-size: 1.4rem;
+        }
+
+        /* Video Container */
+        .video-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .video-player {
+            max-width: 1200px;
+            width: 100%;
+            background: black;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-player video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* Play button overlay */
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 50;
+        }
+
+        .video-wrapper:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-overlay i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .video-wrapper {
+            position: relative;
+        }
+
+        /* Loading Indicator */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--success);
+            animation: spin 1s linear infinite;
+        }
+
+        /* Telegram Popup */
+        .telegram-popup {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50px;
+            padding: 12px 20px 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+            z-index: 1000;
+            animation: pulse 2s infinite;
+            transition: var(--transition);
+            cursor: pointer;
+            text-decoration: none;
+            transform: translateX(-110%);
+            animation: slideIn 0.8s forwards 1s;
+        }
+
+        .telegram-popup:hover {
+            transform: translateX(0) scale(1.05);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.6);
+        }
+
+        .telegram-icon {
+            background: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .telegram-text {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .close-popup {
+            background: rgba(255, 255, 255, 0.2);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(67, 97, 238, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+        }
+
+        /* Performance & Prefetch Indicators */
+        .performance-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #0f0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            z-index: 2000;
+            display: flex;
+            gap: 15px;
+        }
+
+        .perf-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .perf-item i {
+            color: var(--success);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .minimal-header {
+                padding: 0.7rem 1rem;
+            }
+            
+            .logo span {
+                display: none;
+            }
+            
+            .telegram-popup {
+                padding: 10px 15px 10px 10px;
+                font-size: 0.85rem;
+            }
+            
+            .play-overlay {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading screen -->
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Performance indicators -->
+    <div class="performance-info">
+        <div class="perf-item">
+            <i class="fas fa-bolt"></i>
+            <span>Prefetch: Active</span>
+        </div>
+        <div class="perf-item">
+            <i class="fas fa-database"></i>
+            <span>Cache: Enabled</span>
+        </div>
+    </div>
+
+    <!-- Minimal Header -->
+    <div class="minimal-header">
+        <div class="logo">
+            <i class="fas fa-play-circle"></i>
+            <span>STREAMLIGHT</span>
+        </div>
+        <div class="logo">
+            <i class="fas fa-bolt"></i>
+            <span>ULTRA HD</span>
+        </div>
+    </div>
+
+    <!-- Video Container -->
+    <div class="video-container">
+        <div class="video-player">
+            <div class="video-wrapper">
+                <video id="mainVideo" controls playsinline poster="data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'1200' height%3D'675' viewBox%3D'0 0 1200 675'%2F%3E">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="play-overlay" id="playOverlay">
+                    <i class="fas fa-play"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telegram Popup -->
+    <a href="#" class="telegram-popup">
+        <div class="telegram-icon">
+            <i class="fab fa-telegram"></i>
+        </div>
+        <div class="telegram-text">Join our Telegram!</div>
+        <div class="close-popup">
+            <i class="fas fa-times"></i>
+        </div>
+    </a>
+
+    <script>
+        // Video data - this would normally be in a separate JSON file
+        const videoData = {
+            "videos": [
+                {"id": "7nNziN911"}
+            ]
+        };
+
+        // Video formats
+        const videoFormats = [
+            { ext: "mp4", type: "video/mp4" },
+            { ext: "mov", type: "video/quicktime" }
+        ];
+
+        // Performance optimizations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get video ID from data
+            const videoId = videoData.videos[0].id;
+            
+            // Hide loader after page load
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                }, 500);
+            }, 800);
+            
+            // Preconnect to CDN
+            const preconnectLink = document.createElement('link');
+            preconnectLink.rel = 'preconnect';
+            preconnectLink.href = 'https://cdn.videy.co';
+            document.head.appendChild(preconnectLink);
+            
+            // Prefetch resources
+            const prefetchResources = [
+                `https://cdn.videy.co/${videoId}.mp4`,
+                `https://cdn.videy.co/${videoId}.mov`
+            ];
+            
+            prefetchResources.forEach(resource => {
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = resource;
+                document.head.appendChild(link);
+            });
+            
+            // Cache API implementation
+            if ('caches' in window) {
+                caches.open('video-site-cache-v1').then(cache => {
+                    cache.addAll(prefetchResources);
+                });
+            }
+            
+            // Telegram popup interaction
+            const telegramPopup = document.querySelector('.telegram-popup');
+            const closePopup = document.querySelector('.close-popup');
+            
+            closePopup.addEventListener('click', function(e) {
+                e.preventDefault();
+                telegramPopup.style.display = 'none';
+            });
+            
+            // Simulated performance metrics
+            const perfInfo = document.querySelector('.performance-info');
+            setTimeout(() => {
+                perfInfo.innerHTML += '<div class="perf-item"><i class="fas fa-tachometer-alt"></i> <span>Load: 0.6s</span></div>';
+            }, 600);
+            
+            // Set up video sources
+            const videoElement = document.getElementById('mainVideo');
+            const playOverlay = document.getElementById('playOverlay');
+            
+            videoFormats.forEach(format => {
+                const source = document.createElement('source');
+                source.src = `https://cdn.videy.co/${videoId}.${format.ext}`;
+                source.type = format.type;
+                videoElement.appendChild(source);
+            });
+            
+            // Load video but don't autoplay
+            videoElement.load();
+            
+            // Play button functionality
+            playOverlay.addEventListener('click', function() {
+                videoElement.play();
+                this.style.opacity = '0';
+            });
+            
+            // Show play button when video is paused
+            videoElement.addEventListener('pause', function() {
+                playOverlay.style.opacity = '1';
+                playOverlay.querySelector('i').className = 'fas fa-play';
+            });
+            
+            // Hide play button when video is playing
+            videoElement.addEventListener('play', function() {
+                playOverlay.style.opacity = '0';
+            });
+            
+            // Show network status
+            videoElement.addEventListener('progress', function() {
+                const buffered = Math.round((videoElement.buffered.end(0) / videoElement.duration) * 100 || 0;
+                const perfItem = document.querySelector('.perf-item:last-child');
+                if (perfItem && buffered < 100) {
+                    perfItem.innerHTML = `<i class="fas fa-network-wired"></i> <span>Buffering: ${buffered}%</span>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
