@@ -3,12 +3,22 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/next",
+      "config": {
+        "distDir": ".next",
+        "includeFiles": ["public/**"]
+      }
     }
   ],
   "build": {
     "env": {
-      "NEXTAUTH_URL": "https://latothea.vercel.app"
+      "NODE_ENV": "production"
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/$1"
+    }
+  ]
 }
