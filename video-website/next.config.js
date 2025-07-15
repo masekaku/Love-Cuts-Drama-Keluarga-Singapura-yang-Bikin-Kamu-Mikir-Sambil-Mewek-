@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-module.exports = {
+const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: ['cdn.videy.co'],
@@ -16,6 +16,8 @@ module.exports = {
     ]
   },
   env: {
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'https://your-domain.vercel.app',
   }
 };
+
+module.exports = nextConfig;
