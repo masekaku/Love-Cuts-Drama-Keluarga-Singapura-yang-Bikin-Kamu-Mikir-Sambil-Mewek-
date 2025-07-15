@@ -6,16 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "vercel-build": "npm install && next build"
   },
   "dependencies": {
-    "lru-cache": "7.18.3",
     "next": "13.4.19",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "lru-cache": "7.18.3"
   },
   "engines": {
-    "node": ">=18.x"
-  },
-  "packageManager": "npm@8.19.4"
+    "node": "18.x"
+  }
 }
