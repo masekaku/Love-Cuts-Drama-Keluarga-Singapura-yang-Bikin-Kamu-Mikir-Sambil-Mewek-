@@ -1,11 +1,8 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+module.exports = {
   reactStrictMode: true,
   images: {
     domains: ['cdn.videy.co'],
-  },
-  experimental: {
-    nextScriptWorkers: true,
   },
   async rewrites() {
     return [
@@ -16,8 +13,6 @@ const nextConfig = {
     ]
   },
   env: {
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'https://your-domain.vercel.app',
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'https://latothea.vercel.app',
   }
 };
-
-module.exports = nextConfig;
