@@ -9,12 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "lru-cache": "^7.18.3",
+    "lru-cache": "7.18.3",
     "next": "13.4.19",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "engines": {
     "node": ">=18.x"
-  }
+  },
+  "packageManager": "npm@8.19.4"
 }
